@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace AdventOfCode
 {
-    public static class StringExtensions
+    public static class Extensions
     {
         /// <summary>
         /// Splits an array into several smaller arrays.

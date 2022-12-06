@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using static AdventOfCode.StringExtensions;
+using static AdventOfCode.Extensions;
 
 namespace AreaOfCode.Days
 {

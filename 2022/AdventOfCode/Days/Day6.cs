@@ -35,9 +35,9 @@ namespace AreaOfCode.Days
                 packetQueue.Enqueue(text[i]);
                 messageQueue.Enqueue(text[i]);
 
-                if (packetQueue.Count == packetSize && packetQueue.ToList().Distinct().Count() == packetSize)
+                if (startOfPacket == null && packetQueue.Count == packetSize && packetQueue.ToList().Distinct().Count() == packetSize)
                 {
-                    startOfPacket ??= i + 1;
+                    startOfPacket = i + 1;
                 }
 
                 if (messageQueue.Count == messageSize && messageQueue.ToList().Distinct().Count() == messageSize)
