@@ -9,7 +9,7 @@ namespace AreaOfCode
         {
             Console.WriteLine("Advent of code console!");
 
-            var day = new Day6();
+            var day = new Day7();
             day.Run();
 
             Console.WriteLine("Press enter to exit..");
