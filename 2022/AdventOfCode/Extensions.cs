@@ -1,17 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace AdventOfCode
 {
     public static class Extensions
     {
-        /// <summary>
-        /// Splits an array into several smaller arrays.
-        /// </summary>
-        /// <typeparam name="T">The type of the array.</typeparam>
-        /// <param name="array">The array to split.</param>
-        /// <param name="size">The size of the smaller arrays.</param>
-        /// <returns>An array containing smaller arrays.</returns>
         public static IEnumerable<IEnumerable<T>> Split<T>(this T[] array, int size)
         {
             for (var i = 0; i < (float)array.Length / size; i++)
@@ -26,6 +20,73 @@ namespace AdventOfCode
             {
                 yield return array.Skip(i * size).Take(size).ToArray();
             }
+        }
+
+        public static int GetHeight<T>(this T[,] array)
+        {
+            return array.GetLength(0);
+        }
+
+        public static int GetWidth<T>(this T[,] array)
+        {
+            return array.GetLength(1);
+        }
+
+        public static void Print<T>(this T[,] array)
+        {
+            int height = array.GetHeight();
+            int width = array.GetWidth();
+
+            for (int i = 0; i < height; i++)
+            {
+                Console.WriteLine();
+
+                for (int j = 0; j < width; j++)
+                {
+                    Console.Write(array[i, j]);
+                }
+            }
+
+            Console.WriteLine("\n");
+        }
+
+        public static int Sum(this int[,] array)
+        {
+            int height = array.GetHeight();
+            int width = array.GetWidth();
+
+            int sum = 0;
+
+            for (int i = 0; i < height; i++)
+            {
+                for (int j = 0; j < width; j++)
+                {
+                    sum += array[i, j];
+                }
+            }
+
+            return sum;
+        }
+
+        public static int Max(this int[,] array)
+        {
+            int height = array.GetHeight();
+            int width = array.GetWidth();
+
+            int max = int.MinValue;
+
+            for (int i = 0; i < height; i++)
+            {
+                for (int j = 0; j < width; j++)
+                {
+                    if (array[i,j] > max)
+                    {
+                        max = array[i, j];
+                    }
+                }
+            }
+
+            return max;
         }
     }
 }
