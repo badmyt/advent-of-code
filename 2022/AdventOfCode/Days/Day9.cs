@@ -10,67 +10,63 @@ namespace AdventOfCode.Days
         public override void Run()
         {
             var vectors = File.ReadAllLines(InputPath).Select(Vector.Parse).ToList();
-            
-            var tail = new Point(0, 0);
-            var tailSet = new HashSet<string> { $"{tail}" };
-            var tailVector = new Vector();
-            
+
+            var knots = Enumerable.Range(1, 10).Select(x => new Point()).ToList();
+            var head = knots[0];
+            var knotSets = new Dictionary<Point, HashSet<string>>
+            {
+                { knots[1], new HashSet<string> { $"{knots[1]}" } },
+                { knots.Last(), new HashSet<string> { $"{knots.Last()}" } }
+            };
+
             foreach (var headVector in vectors)
             {
-                tailVector += headVector;
-                while (Math.Abs(tailVector.X) > 1 || Math.Abs(tailVector.Y) > 1)
+                (int dx, int dy) = (Math.Abs(headVector.X), Math.Abs(headVector.Y));
+                var steps = dx > dy ? dx : dy;
+
+                for (var i = 0; i < steps; i++)
                 {
-                    MovePointToVector(tail, tailVector);
-                    tailSet.Add($"{tail}");
+                    knots.Aggregate(head + headVector, (prev, cur) =>
+                    {
+                        var prevKnotVector = GetVector(cur, prev);
+                        if (Math.Abs(prevKnotVector.X) > 1 || Math.Abs(prevKnotVector.Y) > 1 || cur == head)
+                        {
+                            MovePointToVector(cur, prevKnotVector);
+                            knotSets.GetValue(cur)?.Add($"{cur}");
+                        }
+                        return cur;
+                    });
                 }
             }
 
-            Console.WriteLine($"Tail unique visited positions - {tailSet.Count}");
+            Console.WriteLine($"First knot unique visited positions - {knotSets.First().Value.Count}");
+            Console.WriteLine($"Tail unique visited positions - {knotSets.Last().Value.Count}");
         }
+
+        private Vector GetVector(Point from, Point to) => new Vector(to.X - from.X, to.Y - from.Y);
 
         private void MovePointToVector(Point point, Vector vector)
         {
-            if (vector.X >= 1)
-            {
-                point.X += 1;
-                vector.X -= 1;
-            }
-            if (vector.X <= -1)
-            {
-                point.X -= 1;
-                vector.X += 1;
-            }
-            if (vector.Y >= 1)
-            {
-                point.Y += 1;
-                vector.Y -= 1;
-            }
-            if (vector.Y <= -1)
-            {
-                point.Y -= 1;
-                vector.Y += 1;
-            }
+            point.X += Math.Sign(vector.X);
+            point.Y += Math.Sign(vector.Y);
         }
 
         private class Vector : Point
         {
-            public Vector() { }
             public Vector(int x, int y) : base(x,y) { }
             public static Vector Parse(string line)
             {
                 var arguments = line.Split(' ');
-                var direction = arguments[0][0];
-                var magnitude = int.Parse(arguments[1]);
-                switch (direction)
+                (char direction, int magnitude) = (arguments[0][0], int.Parse(arguments[1]));
+                return direction switch
                 {
-                    case 'U': return new Vector(0,magnitude);
-                    case 'R': return new Vector(magnitude,0);
-                    case 'D': return new Vector(0,-magnitude);
-                    case 'L': return new Vector(-magnitude,0);
-                    default: throw new IOException();
-                }
+                    'U' => new Vector(0, magnitude),
+                    'R' => new Vector(magnitude, 0),
+                    'D' => new Vector(0, -magnitude),
+                    'L' => new Vector(-magnitude, 0),
+                    _ => throw new IOException()
+                };
             }
-            public static Vector operator +(Vector a, Vector b) => new Vector(a.X + b.X, a.Y + b.Y);
         }
 
         private class Point
