@@ -21,7 +21,8 @@ namespace AdventOfCode.Days
 
             foreach (var headVector in vectors)
             {
-                (int dx, int dy) = (Math.Abs(headVector.X), Math.Abs(headVector.Y));
+                var dx = Math.Abs(headVector.X);
+                var dy = Math.Abs(headVector.Y);
                 var steps = dx > dy ? dx : dy;
 
                 for (var i = 0; i < steps; i++)
@@ -64,7 +65,7 @@ namespace AdventOfCode.Days
                     'R' => new Vector(magnitude, 0),
                     'D' => new Vector(0, -magnitude),
                     'L' => new Vector(-magnitude, 0),
-                    _ => throw new IOException()
+                    _ => throw new ArgumentException(line)
                 };
             }
         }
