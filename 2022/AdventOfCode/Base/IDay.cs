@@ -1,4 +1,4 @@
-﻿namespace AreaOfCode.Days
+﻿namespace AdventOfCode.Days
 {
     public interface IDay
     {

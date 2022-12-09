@@ -1,7 +1,7 @@
 ﻿using System;
-using AreaOfCode.Days;
+using AdventOfCode.Days;
 
-namespace AreaOfCode
+namespace AdventOfCode
 {
     class Program
     {

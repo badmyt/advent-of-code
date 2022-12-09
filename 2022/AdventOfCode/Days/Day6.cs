@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace AreaOfCode.Days
+namespace AdventOfCode.Days
 {
     public class Day6 : DayBase
     {

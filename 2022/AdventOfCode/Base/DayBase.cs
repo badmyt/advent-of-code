@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AreaOfCode.Days
+namespace AdventOfCode.Days
 {
     public abstract class DayBase : IDay
     {

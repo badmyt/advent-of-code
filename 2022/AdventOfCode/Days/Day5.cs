@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace AreaOfCode.Days
+namespace AdventOfCode.Days
 {
     public class Day5 : DayBase
     {

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 
-namespace AreaOfCode.Days
+namespace AdventOfCode.Days
 {
     public class Day4 : DayBase
     {

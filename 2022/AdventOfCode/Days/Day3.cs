@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using static AdventOfCode.Extensions;
 
-namespace AreaOfCode.Days
+namespace AdventOfCode.Days
 {
     public class Day3 : DayBase
     {
