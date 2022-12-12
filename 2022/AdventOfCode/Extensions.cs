@@ -43,7 +43,35 @@ namespace AdventOfCode
 
                 for (int j = 0; j < width; j++)
                 {
-                    Console.Write(array[i, j]);
+                    var item = $"{array[i, j]}";
+                    if (item == "True")
+                        item = "1";
+                    if (item == "False")
+                        item = "0";
+
+                    Console.Write(item);
+                }
+            }
+
+            Console.WriteLine("\n");
+        }
+
+        public static void PrintVisitMap(this char[,] array)
+        {
+            int height = array.GetHeight();
+            int width = array.GetWidth();
+
+            for (int i = 0; i < height; i++)
+            {
+                Console.WriteLine();
+
+                for (int j = 0; j < width; j++)
+                {
+                    var item = array[i, j];
+                    if (item == default(char))
+                        item = '.';
+
+                    Console.Write(item);
                 }
             }
 
