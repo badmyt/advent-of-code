@@ -10,145 +10,149 @@ namespace AdventOfCode.Days
         public override void Run()
         {
             var mapLines = File.ReadAllLines(InputPath);
-            var node = QuadNode.ParseFromText(mapLines);
+            (char[,] map, int sr, int sc) = ParseMap(mapLines);
 
-            var closestPath = node.GetClosestPath();
+            var stepCountPartOne = new PathFinder_BFS(map).FindClosestPath_BFS(sr, sc);
 
-            Console.WriteLine($"Closest path is {closestPath?.Depth} steps");
+            Console.WriteLine($"Optimal path from S to E is {stepCountPartOne} steps");
+
+            var startPositions = FindAllPositions(map, 'a');
+            var stepCountPartTwo = startPositions
+                .Select(x => new PathFinder_BFS(map).FindClosestPath_BFS(x.Item1, x.Item2))
+                .Where(x => x > 0)
+                .OrderBy(x => x)
+                .First();
+
+            Console.WriteLine($"Optimal path from S to E from best 'a' location is {stepCountPartTwo} steps");
         }
 
-        private class QuadNode
+        private class PathFinder_BFS
         {
+            private bool[,] _visited;
             private char[,] _map;
-            private char[,] _visitMap;
             private int _height;
             private int _width;
-            private char _symbol;
+            private int[] _dr = new[] { -1, +1, 0, 0 };
+            private int[] _dc = new[] { 0, 0, +1, -1 };
+            private int _nodesLeftInLayer = 1;
+            private int _nodesInNextLayer = 0;
+            private int _moveCount = 0;
+            private bool _endReached;
 
-            public int Row { get; set; }
-            public int Col { get; set; }
+            private Queue<int> _rowQueue = new Queue<int>();
+            private Queue<int> _colQueue = new Queue<int>();
 
-            public QuadNode Up { get; set; }
-            public QuadNode Right { get; set; }
-            public QuadNode Down { get; set; }
-            public QuadNode Left { get; set; }
-
-            public QuadNode GetClosestPath()
+            public PathFinder_BFS(char[,] map)
             {
-                if (Value == 'E')
-                {
-                    _visitMap[Row, Col] = 'E';
-
-                    /*
-                    Console.WriteLine("Path found, visitmap:");
-                    _visitMap.PrintVisitMap();
-                    */
-
-                    return this;
-                }
-
-                Up ??= GetNext(-1, 0, '^');
-                Right ??= GetNext(0, 1, '>');
-                Down ??= GetNext(1, 0, 'v');
-                Left ??= GetNext(0, -1, '<');
-
-                var directions = new[] { Right, Up, Down, Left }.Where(x => x != null).ToList(); ;
-                if (!directions.Any())
-                {
-                    return null;
-                }
-
-                if (Value == 'h')
-                {
-                    //debugger
-                }
-
-                var paths = new List<QuadNode>();
-
-                for (int i = 0; i < directions.Count; i++)
-                {
-                    var path = directions[i].GetClosestPath();
-                    if (path != null)
-                        paths.Add(path);
-                }
-
-                var closestPath = paths.OrderBy(x => x.Depth).FirstOrDefault();
-
-                return closestPath;
-            }
-
-            public bool IsVisited => new[] { 'v', '^', '>', '<', 'S' }.Contains(_symbol);
-            public char Value => _map[Row, Col];
-
-            public int Depth { get; }
-
-            public QuadNode(char[,] map, int row, int col, int depth = 0, char[,] visitMap = null, char? symbol = null)
-            {
-                Row = row;
-                Col = col;
-                Depth = depth;
-
-                if (symbol != null)
-                    _symbol = symbol.Value;
-                else
-                    _symbol = 'S';
-
                 _map = map;
-                _height = _map.GetHeight();
-                _width = _map.GetWidth();
-
-                _visitMap = new char[_height, _width];
-                if (visitMap != null)
-                {
-                    Array.Copy(visitMap, _visitMap, visitMap.Length);
-                }
-
-                _visitMap[row, col] = _symbol;
+                _height = map.GetHeight();
+                _width = map.GetWidth();
+                _visited = new bool[_height, _width];
             }
 
-            private QuadNode GetNext(int drow, int dcol, char symbol)
+            public int FindClosestPath_BFS(int sRow, int sCol)
             {
-                int row = Row + drow;
-                int col = Col + dcol;
+                _rowQueue.Enqueue(sRow);
+                _colQueue.Enqueue(sCol);
+                _visited[sRow, sCol] = true;
 
-                if (row < 0 || row >= _height || col < 0 || col >= _width)
-                    return null;
-
-                if (_visitMap[row, col] != default(char))
-                    return null;
-
-                char next = _map[row, col];
-
-                if (next == 'E' && Value != 'z')
-                    return null;
-
-                if ((next - Value <= 1) || (Value == 'S' && next == 'a') || (Value == 'z' && next == 'E'))
-                    return new QuadNode(_map, row, col, Depth + 1, _visitMap, symbol);
-
-                return null;
-            }
-
-            public static QuadNode ParseFromText(string[] lines)
-            {
-                var map = new char[lines.Length, lines[0].Length];
-                int row = 0, col = 0;
-
-                for (int i = 0; i < lines.Length; i++)
+                while (_rowQueue.Any())
                 {
-                    for (int j = 0; j < lines[i].Length; j++)
+                    var row = _rowQueue.Dequeue();
+                    var col = _colQueue.Dequeue();
+
+                    if (_map[row, col] == 'E')
                     {
-                        map[i, j] = lines[i][j];
-                        if (map[i, j] == 'S')
-                        {
-                            row = i;
-                            col = j;
-                        }
+                        _endReached = true;
+                        break;
+                    }
+
+                    if (_map[row, col] == 'S')
+                        _map[row, col] = 'a';
+
+                    ExploreAdjacent(row, col);
+
+                    _nodesLeftInLayer--;
+                    if (_nodesLeftInLayer == 0)
+                    {
+                        _nodesLeftInLayer = _nodesInNextLayer;
+                        _nodesInNextLayer = 0;
+                        _moveCount++;
                     }
                 }
-                return new QuadNode(map, row, col);
+
+                return _endReached ? _moveCount : -1;
             }
 
-            public override string ToString() => $"{Value} - ({Row},{Col})";
+            private void ExploreAdjacent(int row, int col)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    var nextRow = row + _dr[i];
+                    var nextCol = col + _dc[i];
+
+                    if (nextRow < 0 || nextCol < 0 || nextRow >= _height || nextCol >= _width)
+                        continue;
+
+                    if (_visited[nextRow, nextCol])
+                        continue;
+
+                    var current = _map[row, col];
+
+                    if (_map[nextRow, nextCol] == 'S')
+                        _map[nextRow, nextCol] = 'a';
+
+                    var next = _map[nextRow, nextCol];
+                    if (next - current > 1)
+                        continue;
+
+                    if (next == 'E' && current != 'z' && current != 'x')
+                        continue;
+
+                    _rowQueue.Enqueue(nextRow);
+                    _colQueue.Enqueue(nextCol);
+
+                    _visited[nextRow, nextCol] = true;
+
+                    _nodesInNextLayer++;
+                }
+            }
+        }
+
+        public static (char[,], int, int) ParseMap(string[] lines)
+        {
+            var map = new char[lines.Length, lines[0].Length];
+            int row = 0, col = 0;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                for (int j = 0; j < lines[i].Length; j++)
+                {
+                    map[i, j] = lines[i][j];
+                    if (map[i, j] == 'S')
+                    {
+                        row = i;
+                        col = j;
+                    }
+                }
+            }
+            return (map, row, col);
+        }
+
+        public List<(int, int)> FindAllPositions(char[,] map, char val)
+        {
+            var result = new List<(int, int)>();
+            var height = map.GetHeight();
+            var width = map.GetWidth();
+            for (int i = 0; i < height; i++)
+            {
+                for (int j = 0; j < width; j++)
+                {
+                    if (map[i, j] == val || map[i, j] == 'S')
+                        result.Add((i, j));
+                }
+            }
+            return result;
         }
     }
 }
