@@ -9,7 +9,7 @@ namespace AdventOfCode
         {
             Console.WriteLine("Advent of code console!");
 
-            var day = new Day12();
+            var day = new Day13();
             day.Run();
 
             Console.WriteLine("Press enter to exit..");
