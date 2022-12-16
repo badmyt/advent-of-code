@@ -56,6 +56,37 @@ namespace AdventOfCode
             Console.WriteLine("\n");
         }
 
+        public static T[,] PopulateWith<T>(this T[,] array, T val)
+        {
+            int height = array.GetHeight();
+            int width = array.GetWidth();
+
+            for (int i = 0; i < height; i++)
+            {
+                for (int j = 0; j < width; j++)
+                {
+                    array[i,j] = val;
+                }
+            }
+
+            return array;
+        }
+
+        public static T[,] SubArray<T>(this T[,] array, int rowStart, int rowTake, int colStart, int colTake)
+        {
+            var result = new T[rowTake, colTake];
+
+            for (int i = 0; i < rowTake; i++)
+            {
+                for (int j = 0; j < colTake; j++)
+                {
+                    result[i, j] = array[rowStart + i, colStart + j];
+                }
+            }
+
+            return result;
+        }
+
         public static void PrintVisitMap(this char[,] array)
         {
             int height = array.GetHeight();
