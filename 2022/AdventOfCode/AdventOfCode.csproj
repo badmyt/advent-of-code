@@ -10,6 +10,7 @@
     <None Remove="Inputs\" />
     <None Remove="Base\" />
     <None Remove="Newtonsoft.Json" />
+    <None Remove="Combinatorics" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Days\" />
@@ -68,8 +69,12 @@
     <None Update="Input\day15.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Input\day16.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Combinatorics" Version="2.0.0" />
   </ItemGroup>
 </Project>

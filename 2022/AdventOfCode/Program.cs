@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using AdventOfCode.Days;
 
 namespace AdventOfCode
@@ -8,10 +9,13 @@ namespace AdventOfCode
         static void Main(string[] args)
         {
             Console.WriteLine("Advent of code console!");
+            var sw = new Stopwatch();
+            sw.Start();
 
-            var day = new Day15();
+            var day = new Day16 { Stopwatch = sw };
             day.Run();
 
+            Console.WriteLine("Execution time - " + sw.Elapsed);
             Console.WriteLine("Press enter to exit..");
             Console.ReadLine();
         }

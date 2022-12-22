@@ -10,8 +10,8 @@ namespace AdventOfCode.Days
     public class Day15 : DayBase
     {
         private const string InputAlpha = "1234567890=,;-";
-        private HashSet<(int, int)> _beacons = new();
-        private List<Sensor> _sensors = new();
+        private HashSet<(int, int)> _beacons = new HashSet<(int, int)>();
+        private List<Sensor> _sensors = new List<Sensor>();
 
         public override void Run()
         {

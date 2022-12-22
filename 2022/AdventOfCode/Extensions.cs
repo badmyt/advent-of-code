@@ -14,6 +14,14 @@ namespace AdventOfCode
             }
         }
 
+        public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> array, int length, int chunkSize)
+        {
+            for (var i = 0; i < (float)length / chunkSize; i++)
+            {
+                yield return array.Skip(i * chunkSize).Take(chunkSize);
+            }
+        }
+
         public static IEnumerable<T[]> SplitAsArrays<T>(this T[] array, int size)
         {
             for (var i = 0; i < (float)array.Length / size; i++)
@@ -148,15 +156,25 @@ namespace AdventOfCode
             return max;
         }
 
-        /* public static TResult Traverse<TResult, TItem>(this TItem[,] array)
-        {
-
-        }*/
-
         public static TV GetValue<TK, TV>(this IDictionary<TK, TV> dict, TK key, TV defaultValue = default(TV))
         {
             TV value;
             return dict.TryGetValue(key, out value) ? value : defaultValue;
+        }
+
+        public static bool[][] GetBooleanPermutations(int n)
+        {
+            List<bool[]> matrix = new List<bool[]>();
+            double count = Math.Pow(2, n);
+            for (int i = 0; i < count; i++)
+            {
+                string str = Convert.ToString(i, 2).PadLeft(n, '0');
+                bool[] boolArr = str.Select((x) => x == '1').ToArray();
+                matrix.Add(boolArr);
+            }
+
+            bool[][] arr = matrix.ToArray();
+            return arr;
         }
     }
 }
