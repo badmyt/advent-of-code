@@ -12,7 +12,7 @@ namespace AdventOfCode
             var sw = new Stopwatch();
             sw.Start();
 
-            var day = new Day17 { Stopwatch = sw };
+            var day = new Day18 { Stopwatch = sw };
             day.Run();
 
             Console.WriteLine("Execution time - " + sw.Elapsed);
