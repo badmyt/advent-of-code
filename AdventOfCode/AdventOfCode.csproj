@@ -1,0 +1,114 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Inputs\" />
+    <None Remove="Base\" />
+    <None Remove="Newtonsoft.Json" />
+    <None Remove="Combinatorics" />
+    <None Remove="2024\" />
+    <None Remove="2024\Days\" />
+    <None Remove="2024\Input\" />
+    <None Remove="2022\Input\day1.txt" />
+    <None Remove="2022\Input\day19.txt" />
+    <None Remove="2022\Input\day2.txt" />
+    <None Remove="2022\Input\day10.txt" />
+    <None Remove="2022\Input\day11.txt" />
+    <None Remove="2022\Input\day12.txt" />
+    <None Remove="2022\Input\day13.txt" />
+    <None Remove="2022\Input\day14.txt" />
+    <None Remove="2022\Input\day15.txt" />
+    <None Remove="2022\Input\day16.txt" />
+    <None Remove="2022\Input\day17.txt" />
+    <None Remove="2022\Input\day18.txt" />
+    <None Remove="2022\Input\day3.txt" />
+    <None Remove="2022\Input\day4.txt" />
+    <None Remove="2022\Input\day5.txt" />
+    <None Remove="2022\Input\day6.txt" />
+    <None Remove="2022\Input\day7.txt" />
+    <None Remove="2022\Input\day8.txt" />
+    <None Remove="2022\Input\day9.txt" />
+    <None Update="2023\Input\day3_real.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="2023\Input\day4_test.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="2023\Input\day4_real.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="2023\Input\day4.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="2023\Input\day5.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="2023\Input\day5_real.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="2023\Input\day5_test.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Base\" />
+    <Folder Include="2023\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Inputs\day1_input.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Inputs\day2_input.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Inputs\day3_input.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Inputs\day3.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Input\day18 %28copy%29.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="2023\Input\day1.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="2023\Input\day2.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="2023\Input\day3.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Combinatorics" Version="2.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="2022\Days\Day1.cs" />
+    <Compile Remove="2022\Days\Day10.cs" />
+    <Compile Remove="2022\Days\Day11.cs" />
+    <Compile Remove="2022\Days\Day12.cs" />
+    <Compile Remove="2022\Days\Day13.cs" />
+    <Compile Remove="2022\Days\Day14.cs" />
+    <Compile Remove="2022\Days\Day15.cs" />
+    <Compile Remove="2022\Days\Day16.cs" />
+    <Compile Remove="2022\Days\Day16_v2.cs" />
+    <Compile Remove="2022\Days\Day17.cs" />
+    <Compile Remove="2022\Days\Day18.cs" />
+    <Compile Remove="2022\Days\Day19.cs" />
+    <Compile Remove="2022\Days\Day2.cs" />
+    <Compile Remove="2022\Days\Day3.cs" />
+    <Compile Remove="2022\Days\Day4.cs" />
+    <Compile Remove="2022\Days\Day5.cs" />
+    <Compile Remove="2022\Days\Day6.cs" />
+    <Compile Remove="2022\Days\Day7.cs" />
+    <Compile Remove="2022\Days\Day8.cs" />
+    <Compile Remove="2022\Days\Day9.cs" />
+    <Compile Remove="2022\Days\DayX.cs" />
+  </ItemGroup>
+</Project>
