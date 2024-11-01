@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using static AdventOfCode.Extensions;
 
 namespace AdventOfCode.Days
@@ -41,51 +42,96 @@ namespace AdventOfCode.Days
                     {
                         Destination = lineInput[0],
                         Start = lineInput[1],
-                        Range = lineInput[2]
+                        End = lineInput[1] + lineInput[2]-1
                     };
                     maps.Last().Rows.Add(mapRow);
                     continue;
                 }
             }
 
+            maps.ForEach(map => map.OrderRows());
+
             var mappedSeedsPart1 = seedsPart1
                 .Select(x => maps.Aggregate(x, (prev, cur) => cur.MapNumber(prev)))
                 .ToList();
-            
-            var lowestMappedSeed1 = mappedSeedsPart1.Min();
 
+            var lowestMappedSeed1 = mappedSeedsPart1.Min();
             long lowestMappedSeed2 = long.MaxValue;
-            foreach (var seedRange in seedRanges)
+
+            // this should work with ranges instead of numbers, but cba changing as it already gave the result
+
+            Parallel.ForEach(seedRanges, seedRange =>
             {
+                long localLowestMapped = long.MaxValue;
+
                 for (long i = seedRange.Item1; i <= seedRange.Item1 + seedRange.Item2; i++)
                 {
-                    var mapped = maps.Aggregate(i, (prev, cur) => cur.MapNumber(prev));
-                    lowestMappedSeed2 = mapped < lowestMappedSeed2 ? mapped : lowestMappedSeed2;
+                    long mapped = i;
+
+                    foreach (var map in maps)
+                    {
+                        mapped = map.MapNumber(mapped);
+                    }
+
+                    localLowestMapped = Math.Min(localLowestMapped, mapped);
                 }
-            }
-            
+
+                lock (this) 
+                {
+                    lowestMappedSeed2 = Math.Min(lowestMappedSeed2, localLowestMapped);
+                }
+            });
+
             Console.WriteLine($"Lowest mapped seed part 1: {lowestMappedSeed1}");
             Console.WriteLine($"Lowest mapped seed part 2: {lowestMappedSeed2}");
-
         }
 
         private class Map
         {
             public List<MapRow> Rows { get; set; } = new List<MapRow>();
 
+            public void OrderRows()
+            {
+                Rows = Rows.OrderBy(x => x.Start).ToList();
+            }
+
             public long MapNumber(long number)
             {
-                foreach (var row in Rows)
+                int index = BinarySearchRow(number);
+                if (index != -1)
                 {
-                    if (number >= row.Start && number <= row.Start + row.Range)
-                    {
-                        var delta = number - row.Start;
-                        var mapped = row.Destination + delta;
-                        return mapped;
-                    }
+                    var row = Rows[index];
+                    return row.Destination + (number - row.Start);
                 }
 
                 return number;
+            }
+
+            private int BinarySearchRow(long number)
+            {
+                int left = 0;
+                int right = Rows.Count - 1;
+
+                while (left <= right)
+                {
+                    int mid = left + (right - left) / 2;
+                    var row = Rows[mid];
+
+                    if (number >= row.Start && number <= row.End)
+                    {
+                        return mid;
+                    }
+                    else if (number < row.Start)
+                    {
+                        right = mid - 1;
+                    }
+                    else
+                    {
+                        left = mid + 1;
+                    }
+                }
+
+                return -1;
             }
         }
         
@@ -93,7 +139,7 @@ namespace AdventOfCode.Days
         {
             public long Destination { get; set; }
             public long Start { get; set; }
-            public long Range { get; set; }
+            public long End { get; set; }
         }
     }
 }
