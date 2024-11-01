@@ -5,8 +5,10 @@ using static AdventOfCode.Extensions;
 
 namespace AdventOfCode.Days
 {
-    public class Day3 : DayBase
+    public class Day1 : DayBase
     {
+
+
         private string _alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
         public override void Run()
