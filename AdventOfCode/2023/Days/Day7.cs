@@ -21,7 +21,7 @@ namespace AdventOfCode.Days
             var lines = File.ReadAllLines(InputPath);
             var hands = lines
                 .Select(x => x.Split(" ", StringSplitOptions.RemoveEmptyEntries).ToArray())
-                .Select(x => new Hand(x[0], long.Parse(x[1])).Init())
+                .Select(x => new Hand(x[0], long.Parse(x[1])))
                 .OrderBy(x => x)
                 .ToList();
 
@@ -34,7 +34,11 @@ namespace AdventOfCode.Days
             Console.WriteLine($"Total winnings with joker-enabled-{EnableJoker}: {totalWinnings}");
 
             // 251891094 - too high
+            // 251515496 - correct
             // 251335624 - too low
+
+            var text = hands.Select(x => x.Value + "\t" + x.HandType.ToString() + "\t" + x.Bid).ToList();
+            File.WriteAllLines("debug_my.txt", text);
 
             //debug
             var oneCard = hands.FindAll(x => x.HandType == HandType.HighCard);
@@ -51,16 +55,6 @@ namespace AdventOfCode.Days
             var joker_fullHouse = handsWithJoker.FindAll(x => x.HandType == HandType.FullHouse);
             var joker_fourCards = handsWithJoker.FindAll(x => x.HandType == HandType.FourCards);
             var joker_fiveCards = handsWithJoker.FindAll(x => x.HandType == HandType.FiveCards);
-
-            if (File.Exists("debug.txt"))
-            {
-                try
-                {
-                    File.Delete("debug.txt");
-                }
-                catch { }
-            }
-            File.WriteAllLines("debug.txt", hands.Select(x => x.ToStringShort()));
         }
 
         private enum HandType
@@ -89,11 +83,6 @@ namespace AdventOfCode.Days
             public string Value { get; set; }
             public HandType HandType { get; set; }
             public long Bid { get; set; }
-
-            public Hand Init()
-            {
-                return EnableJoker ? InitWithJoker() : InitNormal();
-            }
 
             private Hand InitNormal()
             {
@@ -159,6 +148,11 @@ namespace AdventOfCode.Days
                     .ToDictionary(g => g.Key, g => (Card: g.Key, Count: g.Count()))
                     .OrderByDescending(g => g.Value.Count);
 
+                if (Value == "J3Q3K")
+                {
+                    //debug
+                }
+                
                 bool checkedFor4Jokers = false,
                      checkedFor3Jokers = false;
 
@@ -268,8 +262,8 @@ namespace AdventOfCode.Days
                 {
                     if (twoCardGroup.Value.Card != 'J' && grouped.Any(x => x.Value.Card == 'J'))
                     {
-                        if (HandType == HandType.ThreeCards)
-                            return this;
+                        HandType = HandType.ThreeCards; 
+                        return this;
                     }
                 }
 
@@ -313,6 +307,11 @@ namespace AdventOfCode.Days
             {
                 Value = val;
                 Bid = bid;
+
+                if (EnableJoker)
+                    InitWithJoker();
+                else
+                    InitNormal();
             }
 
             public bool IsHigherThan(Hand otherHand)
