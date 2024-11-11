@@ -64,6 +64,59 @@ namespace AdventOfCode
             Console.WriteLine("\n");
         }
 
+        public static void Print<T>(T[,] array1, T[,] array2)
+        {
+            int height1 = array1.GetLength(0);
+            int width1 = array1.GetLength(1);
+            int height2 = array2.GetLength(0);
+            int width2 = array2.GetLength(1);
+
+            // Determine the max height to print all rows
+            int maxHeight = Math.Max(height1, height2);
+
+            for (int i = 0; i < maxHeight; i++)
+            {
+                // Print row from the first array
+                for (int j = 0; j < width1; j++)
+                {
+                    if (i < height1)  // Check if we're within bounds of array1
+                    {
+                        var item = $"{array1[i, j]}";
+                        if (item == "True") item = "1";
+                        if (item == "False") item = "0";
+                        Console.Write(item);
+                    }
+                    else
+                    {
+                        Console.Write(" ");  // Print space if outside bounds of array1
+                    }
+                }
+
+                // Add whitespace between the arrays
+                Console.Write(new string(' ', 10));
+
+                // Print row from the second array
+                for (int j = 0; j < width2; j++)
+                {
+                    if (i < height2)  // Check if we're within bounds of array2
+                    {
+                        var item = $"{array2[i, j]}";
+                        if (item == "True") item = "1";
+                        if (item == "False") item = "0";
+                        Console.Write(item);
+                    }
+                    else
+                    {
+                        Console.Write(" ");  // Print space if outside bounds of array2
+                    }
+                }
+
+                Console.WriteLine();  // Move to the next row
+            }
+
+            Console.WriteLine();  // Extra line at the end
+        }
+
         public static T[,] PopulateWith<T>(this T[,] array, T val)
         {
             int height = array.GetHeight();
