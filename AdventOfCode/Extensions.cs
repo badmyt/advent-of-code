@@ -30,6 +30,11 @@ namespace AdventOfCode
             }
         }
 
+        public static IEnumerable<T> SkipAt<T>(this IEnumerable<T> collection, int elementIndex)
+        {
+            return collection.Where((value, index) => index != elementIndex);
+        }
+
         public static int GetHeight<T>(this T[,] array)
         {
             return array.GetLength(0);
