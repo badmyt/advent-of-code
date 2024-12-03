@@ -33,9 +33,8 @@ namespace AdventOfCode
 
                 if (dayType != null)
                 {
-                    // Create an instance of the highest DayX class and call Run
-                    var dayInstance = (DayBase)Activator.CreateInstance(dayType, Year); // Assuming constructor takes year
-
+                    // Create an instance of the highest DayX class and Run
+                    var dayInstance = (DayBase)Activator.CreateInstance(dayType, Year);
                     var dayClassName = dayInstance.GetType().Name;
                     var dayNumber = dayClassName.Substring(3);
                     Console.WriteLine($"Running day {dayNumber}...");
