@@ -13,8 +13,10 @@ namespace AdventOfCode.Days
         private HashSet<(int x, int y)> _wayPoints = new HashSet<(int x, int y)>();
         private HashSet<(int x, int y)> _visitedPoints = new HashSet<(int x, int y)>();
         private (int x, int y) _startPoint = new(0, 0);
+        private HashSet<(int x, int y)> _startPoints = new HashSet<(int x, int y)>();
         private const char VisitedPointSymbol = '/';
         private const char WayPointSymbol = '0';
+        private const char NestPointSymbol = '+';
 
         public Day10(int year) : base(year) { }
 
@@ -92,71 +94,83 @@ namespace AdventOfCode.Days
             Console.WriteLine($"Distance to farthest point from the start of pipe labyrinth: {distance}");
 
             // part 2
-            var startPoints = new HashSet<Point>();
             for (int i = 0; i < width; i++)  // from top left -> to the right
-                startPoints.Add(new Point(i, 0));
+                _startPoints.Add((i, 0));
             for (int i = 0; i < height; i++) // from top left -> to the bottom
-                startPoints.Add(new Point(0, i));
+                _startPoints.Add((0, i));
             for (int i = 0; i < width; i++)  // from bot left -> to the right
-                startPoints.Add(new Point(i, height - 1));
+                _startPoints.Add((i, height - 1));
             for (int i = 0; i < height; i++) // from bot right -> to the bottom
-                startPoints.Add(new Point(width - 1, i));
+                _startPoints.Add((width - 1, i));
 
-            foreach (var point in startPoints)
+            foreach (var point in _startPoints)
             {
-                TraverseMatrix(point, matrix);
+                TraverseMatrix(point.x, point.y, matrix, height, width);
             }
 
-            CopyFinalDebugMatrix(matrix);
+            var preNestDebug = GetFinalDebugMatrix(matrix);
+
+            // not 53 (too low)
+            // not 209
+            // not 211
+            // not 403
+            // not 614, 613 (too high)
+
+            var nestCountDebugMatrix = GetFinalDebugMatrix(matrix);
+            var totalNotVisitedSymbols = nestCountDebugMatrix.Sum(line => line.Count(s => s != '/' && s != '+' && s != '0'));
+
+            Console.WriteLine($"Count of points that serve as a nest within labythinth: ");
         }
 
-        private void TraverseMatrix(Point point, char[,] matrix)
+        private void TraverseMatrix(int x, int y, char[,] matrix, int height, int width, bool startFromNest = false)
         {
-            _visitedPoints.Add((point.X, point.Y));
+            _visitedPoints.Add((x, y));
 
-            int height = matrix.GetLength(0);
-            int width = matrix.GetLength(1);
-
-            var surroundings = GetSurroundingPoints(point, matrix);
-            var notVisited = surroundings.FindAll(x => !IsVisitedPoint(x));
-            var notWayPoints = surroundings.FindAll(x => !IsWayPoint(x));
+            var surroundings = GetSurroundingPoints(x, y, matrix);
+            var notVisited = surroundings.FindAll(p => !IsVisitedPoint(p.x, p.y) && !IsStartPoint(p.x, p.y));
+            var notWayPoints = notVisited.FindAll(p => !IsWayPoint(p.x, p.y));
 
             var nextPoints = notWayPoints;
             foreach (var nextPoint in nextPoints)
             {
-                TraverseMatrix(nextPoint, matrix);
+                TraverseMatrix(nextPoint.x, nextPoint.y, matrix, height, width, startFromNest);
             }
         }
 
-        private bool IsVisitedPoint(Point point)
+        private bool IsVisitedPoint(int x, int y)
         {
-            return _visitedPoints.Contains((point.X, point.Y));
+            return _visitedPoints.Contains((x, y));
         }
 
-        private bool IsWayPoint(Point point)
+        private bool IsWayPoint(int x, int y)
         {
-            return _wayPoints.Contains((point.X, point.Y));
+            return _wayPoints.Contains((x,y));
         }
 
-        private List<Point> GetSurroundingPoints(Point point, char[,] matrix)
+        private bool IsStartPoint(int x, int y)
         {
-            var surroundings = new List<Point>
+            return _startPoints.Contains((x,y));
+        }
+
+        private List<(int x, int y)> GetSurroundingPoints(int x, int y, char[,] matrix)
+        {
+            var surroundings = new List<(int x, int y)>
             {
-                new(point.X - 1, point.Y),
-                new(point.X + 1, point.Y),
-                new(point.X, point.Y - 1),
-                new(point.X, point.Y + 1),
-            }.FindAll(x => IsInBounds(x, matrix));
+                (x - 1, y),
+                (x + 1, y),
+                (x, y - 1),
+                (x, y + 1),
+            }.FindAll(point => IsInBounds(point.x, point.y, matrix));
 
             return surroundings;
         }
 
-        private static bool IsInBounds(Point point, char[,] matrix)
+        private static bool IsInBounds(int x, int y, char[,] matrix)
         {
             int height = matrix.GetLength(0);
             int width = matrix.GetLength(1);
 
-            return point.X >= 0 && point.X < width && point.Y >= 0 && point.Y < height;
+            return x >= 0 && x < width && y >= 0 && y < height;
         }
 
         private Point GetNextPoint(char pipeSymbol, Point prev, Point pipe) => pipeSymbol switch
@@ -172,30 +186,47 @@ namespace AdventOfCode.Days
             _ => throw new Exception($"Unknown symbol '{pipe}'")
         };
 
-        private void CopyFinalDebugMatrix(char[,] matrix)
+        private List<string> GetFinalDebugMatrix(char[,] matrix, bool printNest = false)
         {
             int matrixHeight = matrix.GetLength(0);
             int matrixWidth = matrix.GetLength(1);
 
+            var totalCount = 0;
+            var wayPointCount = 0;
+            var visitedPointCount = 0;
+            var nestCount = 0;
+
             var text = "";
+
+            var result = new List<string>();
 
             for (int y = 0; y < matrixHeight; y++)
             {
+                var line = string.Empty;
                 for (int x = 0; x < matrixWidth; x++)
                 {
-                    var symbol = matrix[x, y];
+                    var symbol = matrix[y, x];
+
                     if (_wayPoints.Contains((x, y)))
                     {
                         symbol = WayPointSymbol;
+                        wayPointCount++;
                     }
                     else if (_visitedPoints.Contains((x, y)))
                     {
                         symbol = VisitedPointSymbol;
+                        visitedPointCount++;
                     }
+
+                    totalCount++;
                     text += symbol;
+                    line += symbol;
                 }
+                result.Add(line);
                 text += "\r\n";
             }
+
+            return result;
         }
 
         private void PrintDebugMatrix(char[,] matrix, Point p1, Point p2, int distance)
