@@ -69,6 +69,30 @@ namespace AdventOfCode
             Console.WriteLine("\n");
         }
 
+        public static void Print<T>(List<List<T>> squareArray)
+        {
+            int height = squareArray.Count;
+            int width = squareArray[0].Count;
+
+            for (int i = 0; i < height; i++)
+            {
+                Console.WriteLine();
+
+                for (int j = 0; j < width; j++)
+                {
+                    var item = $"{squareArray[i][j]}";
+                    if (item == "True")
+                        item = "1";
+                    if (item == "False")
+                        item = "0";
+
+                    Console.Write(item);
+                }
+            }
+
+            Console.WriteLine("\n");
+        }
+
         public static void Print<T>(T[,] array1, T[,] array2)
         {
             int height1 = array1.GetLength(0);
