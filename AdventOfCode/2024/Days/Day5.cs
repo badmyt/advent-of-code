@@ -69,8 +69,8 @@ namespace AdventOfCode.Days
                     var nextValues = print.Skip(printIndex + 1).ToList();
                     if (nextValues.Intersect(lowerValues).Any())
                     {
-                        var highestIndex = FindCornerIndex(lowerValues, print, left: false);
-                        print = MoveValueRight(print, printIndex, highestIndex);
+                        var highestValueIndex = FindExtremeIndex(lowerValues, print, left: false);
+                        print = MoveValueRight(print, printIndex, highestValueIndex);
                     }
                 }
 
@@ -87,8 +87,8 @@ namespace AdventOfCode.Days
                     var prevValues = print.Take(printIndex).ToList();
                     if (prevValues.Intersect(higherValues).Any())
                     {
-                        var lowestIndex = FindCornerIndex(higherValues, print, left: true);
-                        print = MoveValueRight(print, lowestIndex, printIndex);
+                        var lowestValueIndex = FindExtremeIndex(higherValues, print, left: true);
+                        print = MoveValueRight(print, lowestValueIndex, printIndex);
                     }
                 }
             }
@@ -107,7 +107,7 @@ namespace AdventOfCode.Days
             return result;
         }
 
-        private static int FindCornerIndex(List<int> values, List<int> print, bool left)
+        private static int FindExtremeIndex(List<int> values, List<int> print, bool left)
         {
             var indexes = new List<int>();
 
