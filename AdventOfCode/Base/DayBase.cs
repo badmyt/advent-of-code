@@ -8,7 +8,7 @@ namespace AdventOfCode.Days
         public readonly int Year;
 
         public abstract void Run();
-        public Stopwatch Stopwatch { get; set; }
+        public Stopwatch Stopwatch { get; set; } = new Stopwatch();
 
         public DayBase(int year)
         {
