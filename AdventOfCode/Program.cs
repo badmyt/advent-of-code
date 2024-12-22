@@ -67,7 +67,11 @@ namespace AdventOfCode
 
             Console.WriteLine("Execution time - " + elapsed);
             Console.WriteLine("Press enter to exit..");
-            Console.ReadLine();
+            var read = Console.ReadLine();
+            if (read.ToLower() == "r")
+            {
+                await Main(args);
+            }
         }
     }
 }

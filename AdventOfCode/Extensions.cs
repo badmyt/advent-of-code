@@ -52,8 +52,6 @@ namespace AdventOfCode
 
             for (int i = 0; i < height; i++)
             {
-                Console.WriteLine();
-
                 for (int j = 0; j < width; j++)
                 {
                     var item = $"{array[i, j]}";
@@ -64,9 +62,9 @@ namespace AdventOfCode
 
                     Console.Write(item);
                 }
-            }
 
-            Console.WriteLine("\n");
+                Console.WriteLine();
+            }
         }
 
         public static void Print<T>(List<List<T>> squareArray)
@@ -76,8 +74,6 @@ namespace AdventOfCode
 
             for (int i = 0; i < height; i++)
             {
-                Console.WriteLine();
-
                 for (int j = 0; j < width; j++)
                 {
                     var item = $"{squareArray[i][j]}";
@@ -88,6 +84,7 @@ namespace AdventOfCode
 
                     Console.Write(item);
                 }
+                Console.WriteLine();
             }
 
             Console.WriteLine("\n");
