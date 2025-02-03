@@ -10,7 +10,7 @@ namespace AdventOfCode
     class Program
     {
         private const int Year = 2024;
-        private const bool RunSpecificDay = false;
+        private const bool RunSpecificDay = true;
 
         static async Task Main(string[] args)
         {
@@ -20,7 +20,7 @@ namespace AdventOfCode
 
             if (RunSpecificDay)
             {
-                var day = new Day0(Year);
+                var day = new Day15(Year);
                 day.Run();
             }
             else

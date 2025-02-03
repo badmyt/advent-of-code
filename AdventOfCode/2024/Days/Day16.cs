@@ -138,6 +138,21 @@ namespace AdventOfCode.Days
             Console.SetCursorPosition(0, height + 1);
         }
 
+        //private List<List<Point>> GetPointPool(List<List<char>> map)
+        //{
+        //    var lines = new List<List<Point>>();
+        //    for (int i = 0; i < map.Count; i++)
+        //    {
+        //        var line = new List<Point>(map[i].Count);
+        //        for (int j = 0; j < map[i].Count; j++)
+        //        {
+        //            line[j] = new Point(i, j);
+        //        }
+        //        lines.Add(line);
+        //    }
+        //    return lines;
+        //}
+
         private class Route
         {
             public bool IsFinal { get; set; }
