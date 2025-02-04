@@ -14,7 +14,7 @@ namespace AdventOfCode.Days
 
         public override void Run()
         {
-            RunPart1();
+            //RunPart1();
             RunPart2();
         }
         
@@ -47,21 +47,39 @@ namespace AdventOfCode.Days
 
             var map = GetExpandedMap(File.ReadAllLines(InputPath));
             var robotPos = FindRobot(map);
-            var obstacles = FindAllSymbols(map, '#');
+            var obstacles = FindAllSymbols(map, '#').ToHashSet();
             var boxes = FindAllSymbols(map, '[');
 
+            Console.WriteLine("Press Y/N if to turn interactive mode ON/OFF:");
+            var isInteractive = Console.ReadKey().Key == ConsoleKey.Y;
             Console.WriteLine("Initial state:");
             PrintDebugMatrix(map);
+
             for (int i = 0; i < moves.Length; i++)
             {
-                var move = moves[i];
+                var move = isInteractive ? Console.ReadKey().Key switch
+                {
+                    ConsoleKey.LeftArrow => '<',
+                    ConsoleKey.UpArrow => '^',
+                    ConsoleKey.RightArrow => '>',
+                    ConsoleKey.DownArrow => 'v',
+                    _ => moves[i]
+                } : moves[i];
+
                 robotPos = TryMoveRobot_part2(robotPos, move, boxes, obstacles);
 
-                Console.WriteLine($"\nState after {i+1} moves: {move}");
-                RebuildMap(map, robotPos, boxes, obstacles);
-                //PrintDebugMatrix(map);
+                if (isInteractive)
+                {
+                    var nextMove = i < moves.Length - 1 ? moves[i + 1] : 'N';
+                    RebuildMap(map, robotPos, boxes, obstacles);
+                    PrintDebugMatrixInteractive(map, i + 1, move, nextMove);
+                }
             }
-            
+
+            Console.WriteLine("End state:");
+            RebuildMap(map, robotPos, boxes, obstacles);
+            PrintDebugMatrix(map);
+
             var lanternfishSum = GetLanternfishSum(boxes);
 
             Console.WriteLine($"Sum of gps coordinates of all boxes for the lanternfish: {lanternfishSum}");
@@ -133,29 +151,34 @@ namespace AdventOfCode.Days
         
         #region part2
 
-        private Point TryMoveRobot_part2(Point point, char directionSymbol,
-            List<Point> allBoxes, List<Point> obstacles)
+        private Point TryMoveRobot_part2(Point point, char directionSymbol, List<Point> allBoxes, HashSet<Point> obstacles)
         {
             var direction = Directions[directionSymbol];
             var nextPoint = point.Add(direction);
 
-            if (obstacles.Any(x => x.Row == nextPoint.Row && x.Col == nextPoint.Col))
-            { // can optimize
+            if (obstacles.Contains(new Point(nextPoint.Row, nextPoint.Col)))
+            {
                 return point; // cannot move
             }
-            
-            if (allBoxes.All(x => x.Row != nextPoint.Row ||
-                               (x.Col != nextPoint.Col && x.Col != nextPoint.Col - 1)))
-            { // can optimize
+
+            if (!allBoxes.Contains(new Point(nextPoint.Row, nextPoint.Col)) && !allBoxes.Contains(new Point(nextPoint.Row, nextPoint.Col - 1)))
+            {
                 return nextPoint; // moved point
             }
-            
+
             var isHorizontal = directionSymbol is '<' or '>';
-            if (isHorizontal && TryMoveHorizontal(point, direction, allBoxes, obstacles))
+            var filteredBoxes = (isHorizontal
+                    ? allBoxes.Where(x => x.Row == point.Row)
+                    : directionSymbol == '^'
+                        ? allBoxes.Where(x => x.Row <= point.Row)
+                        : allBoxes.Where(x => x.Row >= point.Row))
+                .ToHashSet();
+
+            if (isHorizontal && TryMoveHorizontal(point, direction, filteredBoxes, obstacles))
             {
                 return nextPoint; // moved point and boxes horizontally
             }
-            if (!isHorizontal && TryMoveVertical(point, new List<Point>(), direction, allBoxes, obstacles))
+            if (!isHorizontal && TryMoveVertical(point, new HashSet<Point>(), direction, filteredBoxes, obstacles))
             {
                 return nextPoint; // moved point and boxes vertically
             }
@@ -163,11 +186,11 @@ namespace AdventOfCode.Days
             return point; // cannot move
         }
 
-        private bool TryMoveHorizontal(Point point, Point direction, List<Point> boxes, List<Point> obstacles)
+        private bool TryMoveHorizontal(Point point, Point direction, HashSet<Point> boxesOnTheRow, HashSet<Point> obstacles)
         {
             var nextBoxes = direction.Col == 1
-                ? boxes.Where(x => x.Col > point.Col)
-                : boxes.Where(x => x.Col < point.Col);
+                ? boxesOnTheRow.Where(x => x.Col > point.Col)
+                : boxesOnTheRow.Where(x => x.Col < point.Col);
             
             var nextBoxesOrdered = direction.Col == 1
                 ? nextBoxes.OrderBy(x => x.Col).ToList()
@@ -177,50 +200,55 @@ namespace AdventOfCode.Days
             var currentCol = point.Col;
             foreach (var box in nextBoxesOrdered)
             {
-                currentCol += 2 * Math.Sign(direction.Col);
-                if (box.Col == currentCol)
+                currentCol += 2 * direction.Col;
+                if ((direction.Col == -1 && box.Col == currentCol) || (direction.Col == 1  && box.Col == currentCol - 1))
                 {
                     boxesToMove++;
                 }
                 else
                 {
+                    currentCol -= 2 * direction.Col;
                     break;
                 }
             }
 
-            if (boxesToMove > 0 && !obstacles.Any(x => x.Row == point.Row && x.Col == currentCol))
+            if (boxesToMove == 0 || obstacles.Contains(new Point(point.Row, currentCol + direction.Col)))
             {
-                for (int i = 0; i < boxesToMove; i++)
-                {
-                    boxes[i].Col += direction.Col;
-                }
-                return true;
+                return false;
             }
-            
-            return false;
+
+            foreach (var boxToMove in nextBoxesOrdered.Take(boxesToMove))
+            {
+                boxToMove.Col += direction.Col;
+            }
+
+            return true;
         }
         
-        private bool TryMoveVertical(Point initialPoint, List<Point> boxesToMove, Point direction, List<Point> allBoxes, List<Point> obstacles)
+        private bool TryMoveVertical(Point initialPoint, HashSet<Point> boxesToMove, Point direction, HashSet<Point> allBoxes, HashSet<Point> obstacles)
         {
             var pushPoints = GetPushPoints(initialPoint, boxesToMove);
-            var nextBoxesToMoveStrings = new HashSet<string>();
+            var nextBoxesToMove = new HashSet<Point>();
             var nextRow = pushPoints[0].Row + direction.Row;
             foreach (var point in pushPoints)
             {
-                if (obstacles.Any(x => x.Row == nextRow && x.Col == point.Col))
+                if (obstacles.Contains(new Point(nextRow, point.Col)))
                 {
                     return false;
                 }
 
-                var nextBoxToMove = allBoxes.FirstOrDefault(x => x.Row == nextRow &&
-                                                              (x.Col == point.Col || x.Col == point.Col - 1));
-                if (nextBoxToMove != null)
+                var point1 = new Point(nextRow, point.Col);
+                var point2 = new Point(nextRow, point.Col - 1);
+                if (allBoxes.Contains(point1))
                 {
-                    nextBoxesToMoveStrings.Add($"{nextBoxToMove}");
+                    nextBoxesToMove.Add(point1);
+                }
+                else if (allBoxes.Contains(point2))
+                {
+                    nextBoxesToMove.Add(point2);
                 }
             }
             
-            var nextBoxesToMove = nextBoxesToMoveStrings.Distinct().Select(Point.Parse).ToList();
             if (nextBoxesToMove.Count == 0)
             {
                 return true;
@@ -234,7 +262,7 @@ namespace AdventOfCode.Days
             
             foreach (var box in allBoxes)
             {
-                if (nextBoxesToMoveStrings.Contains(box.ToString()))
+                if (nextBoxesToMove.Contains(box))
                 {
                     box.Row += direction.Row;
                 }
@@ -243,7 +271,7 @@ namespace AdventOfCode.Days
             return true;
         }
 
-        private List<Point> GetPushPoints(Point initialPoint, List<Point> boxesToMove)
+        private List<Point> GetPushPoints(Point initialPoint, HashSet<Point> boxesToMove)
         {
             var pushPoints = new List<Point>();
             if (boxesToMove.Any())
@@ -266,8 +294,7 @@ namespace AdventOfCode.Days
 
         #region misc
 
-        private void RebuildMap(List<List<char>> map, Point robotPos, List<Point> boxes,
-            List<Point> obstacles)
+        private void RebuildMap(List<List<char>> map, Point robotPos, List<Point> boxes, HashSet<Point> obstacles)
         {
             for (int i = 0; i < map.Count; i++)
             {
@@ -279,19 +306,19 @@ namespace AdventOfCode.Days
                         continue;
                     }
 
-                    if (obstacles.Any(x => x.Row == i && x.Col == j))
+                    if (obstacles.Contains(new Point(i, j)))
                     {
                         map[i][j] = '#';
                         continue;
                     }
 
-                    if (boxes.Any(x => x.Row == i && (x.Col == j)))
+                    if (boxes.Contains(new Point(i, j)))
                     {
                         map[i][j] = '[';
                         continue;
                     }
                     
-                    if (boxes.Any(x => x.Row == i && (x.Col == j - 1)))
+                    if (boxes.Contains(new Point(i, j - 1)))
                     {
                         map[i][j] = ']';
                         continue;
@@ -405,6 +432,44 @@ namespace AdventOfCode.Days
             }
         }
 
+        private static void PrintDebugMatrixInteractive(List<List<char>> map, int iteration, char prev, char next)
+        {
+            Console.Clear();
+            Console.WriteLine("\x1b[3J");
+
+            // Move the cursor up to overwrite the previously printed matrix
+            if (map.Count > 0)
+            {
+                Console.SetCursorPosition(0, 0);
+            }
+
+            Console.WriteLine($"\nState after {iteration} moves. Previous: {prev}{prev}{prev}{prev}, Next: {next}{next}{next}{next}{next}");
+
+            for (int i = 0; i < map.Count; i++)
+            {
+                for (int j = 0; j < map[i].Count; j++)
+                {
+                    var symbol = map[i][j];
+                    if (symbol == '@')
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                    }
+                    if (symbol == '#')
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                    }
+                    if (symbol == '[' || symbol == ']')
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                    }
+
+                    Console.Write(symbol);
+                    Console.ResetColor();
+                }
+                Console.WriteLine();
+            }
+        }
+
         private class Point
         {
             public Point(int row, int col) { Row = row; Col = col; }
@@ -414,6 +479,8 @@ namespace AdventOfCode.Days
             public Point Add(Point vector, int times = 1) => new(Row + vector.Row * times, Col + vector.Col * times);
             public override string ToString() => $"{Row}:{Col}";
             public static Point Parse(string point) => new(int.Parse(point.Split(":")[0]), int.Parse(point.Split(":")[1]));
+            public override bool Equals(object obj) => obj is Point p && Row == p.Row && Col == p.Col;
+            public override int GetHashCode() => HashCode.Combine(Row, Col);
         }
 
         private static readonly Dictionary<char, Point> Directions = new()
