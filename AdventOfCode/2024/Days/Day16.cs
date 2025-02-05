@@ -11,6 +11,7 @@ namespace AdventOfCode.Days
     {
         private const int TurnCost = 1000;
         private static readonly Point _initialDirection = new (0, 1); // east
+        private static readonly Dictionary<Point, long> _pointCosts = new Dictionary<Point, long>();
 
         public Day16(int year) : base(year) { }
 
@@ -24,7 +25,7 @@ namespace AdventOfCode.Days
             var route = GetShortestRoute(map);
 
             Print(map);
-            PrintInteractive(route, map);
+            //PrintInteractive(route, map);
 
             Console.WriteLine($"Lowest score (of the shortest path) from start to end is {route.Cost} points");
         }
@@ -32,8 +33,7 @@ namespace AdventOfCode.Days
         private static Route GetShortestRoute(List<List<char>> map)
         {
             var startPoint = FindStartPoint(map);
-            var finalRoute = new Route();
-            finalRoute.Points.Push(startPoint);
+            var finalRoute = new Route { Head = startPoint, Visited = new HashSet<Point> { startPoint } };
             var queue = new Queue<Route>();
             queue.Enqueue(finalRoute);
 
@@ -48,7 +48,7 @@ namespace AdventOfCode.Days
                 {
                     if (nextRoute.IsFinal)
                     {
-                        return nextRoute; // test
+                        //return nextRoute; // test
 
                         if (!finalRoute.IsFinal || nextRoute.Cost < finalRoute.Cost)
                         {
@@ -68,32 +68,42 @@ namespace AdventOfCode.Days
         private static List<Route> GetNextRoutes(Route route, List<List<char>> map)
         {
             var nextRoutes = new List<Route>();
-            var p = route.Points.Peek();
             var routeDirection = route.Direction;
             foreach (var nextDirection in _directionVectors)
             {
-                var prevPoint = p.Add(routeDirection.Invert());
-                var nextPoint = p.Add(nextDirection);
-                if (($"{prevPoint}" == $"{nextPoint}") || route.Visited.Contains($"{nextPoint}")) // already visited
+                var prevPoint = route.Head.Add(routeDirection.Invert());
+                var nextPoint = route.Head.Add(nextDirection);
+
+                if ((route.Visited.Count > 1) && (prevPoint == nextPoint) || route.Visited.Contains(nextPoint)) // already visited
                     continue;
 
                 if (!nextPoint.InBounds(map) || map[nextPoint.Row][nextPoint.Col] == '#')
                     continue; // out of bounds or met a wall
 
-                var cost = ($"{nextDirection}" == $"{routeDirection}")
+                var cost = nextDirection == routeDirection
                     ? 1
                     : 1 + TurnCost;
 
-                var newStack = new Stack<Point>(new Stack<Point>(route.Points));
-                newStack.Push(nextPoint);
+                var newSet = route.Visited.ToHashSet();
+                newSet.Add(nextPoint);
 
+                var nextRouteCost = route.Cost + cost;
                 var nextRoute = new Route
                 {
-                    Cost = route.Cost + cost,
-                    Points = newStack,
-                    Visited = newStack.Select(x => $"{x}").ToHashSet(),
+                    Cost = nextRouteCost,
+                    Head = nextPoint,
+                    Visited = newSet,
                     Direction = nextDirection
                 };
+
+                if (_pointCosts.TryGetValue(nextPoint, out var existingCost) && existingCost < nextRouteCost)
+                {
+                    continue;
+                }
+                else
+                {
+                    _pointCosts[nextPoint] = nextRouteCost;
+                }
 
                 if (map[nextPoint.Row][nextPoint.Col] == 'E') // end reached
                 {
@@ -124,43 +134,28 @@ namespace AdventOfCode.Days
         private static void PrintInteractive(Route route, List<List<char>> map)
         {
             var height = map.Count;
-            var list = route.Points.Reverse().ToList();
+            var list = route.Visited.ToList();
 
             foreach (var point in list)
             {
-                Console.SetCursorPosition(point.Col, point.Row); // Position cursor (2 for spacing)
+                Console.SetCursorPosition(point.Col, point.Row);
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write($"{map[point.Row][point.Col]}"); // Highlight current cell
+                Console.Write($"{map[point.Row][point.Col]}");
                 Console.ResetColor();
-                Thread.Sleep(100); // 0.1-second delay
+                Thread.Sleep(100);
             }
 
             Console.SetCursorPosition(0, height + 1);
         }
 
-        //private List<List<Point>> GetPointPool(List<List<char>> map)
-        //{
-        //    var lines = new List<List<Point>>();
-        //    for (int i = 0; i < map.Count; i++)
-        //    {
-        //        var line = new List<Point>(map[i].Count);
-        //        for (int j = 0; j < map[i].Count; j++)
-        //        {
-        //            line[j] = new Point(i, j);
-        //        }
-        //        lines.Add(line);
-        //    }
-        //    return lines;
-        //}
-
         private class Route
         {
             public bool IsFinal { get; set; }
             public int Cost { get; set; }
-            public Stack<Point> Points { get; set; } = new Stack<Point>();
-            public HashSet<string> Visited { get; set; } = new HashSet<string>();
+            public Point Head { get; set; }
+            public HashSet<Point> Visited { get; set; } = new HashSet<Point>();
             public Point Direction { get; set; } = _initialDirection;
-            public override string ToString() => string.Join(", ", Points);
+            public override string ToString() => string.Join(", ", Visited);
         }
 
         private class Point
@@ -173,6 +168,8 @@ namespace AdventOfCode.Days
             public Point Invert() => new(Row * -1, Col * -1);
             public override string ToString() => $"{Row}:{Col}";
             public static Point Parse(string point) => new(int.Parse(point.Split(":")[0]), int.Parse(point.Split(":")[1]));
+            public override int GetHashCode() => HashCode.Combine(Row, Col);
+            public override bool Equals(object obj) => obj is Point p && Row == p.Row && Col == p.Col; 
         }
 
         private static readonly List<Point> _directionVectors = new()

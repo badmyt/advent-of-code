@@ -10,7 +10,7 @@ namespace AdventOfCode
     class Program
     {
         private const int Year = 2024;
-        private const bool RunSpecificDay = true;
+        private const bool RunSpecificDay = false;
 
         static async Task Main(string[] args)
         {
