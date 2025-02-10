@@ -50,7 +50,7 @@ namespace AdventOfCode.Days
             var obstacles = FindAllSymbols(map, '#').ToHashSet();
             var boxes = FindAllSymbols(map, '[');
 
-            Console.WriteLine("Press Y/N if to turn interactive mode ON/OFF:");
+            Console.WriteLine("Press Y/N to turn interactive mode ON/OFF:");
             var isInteractive = Console.ReadKey().Key == ConsoleKey.Y;
             Console.WriteLine("Initial state:");
             PrintDebugMatrix(map);

@@ -11,7 +11,8 @@ namespace AdventOfCode.Days
     {
         private const int TurnCost = 1000;
         private static readonly Point _initialDirection = new (0, 1); // east
-        private static readonly Dictionary<Point, long> _pointCosts = new Dictionary<Point, long>();
+        private static readonly Dictionary<(Point, Point), long> _pointCostsDirectional = new();
+        private static long RouteCounter = 0;
 
         public Day16(int year) : base(year) { }
 
@@ -22,20 +23,40 @@ namespace AdventOfCode.Days
 
             Console.Clear();
 
-            var route = GetShortestRoute(map);
+            var routes = GetShortestRoutes(map);
+            var watchPoints = GetWatchPoints(routes.Item2);
 
             Print(map);
-            //PrintInteractive(route, map);
+            PrintInteractive(routes.Item1, map, watchPoints);
 
-            Console.WriteLine($"Lowest score (of the shortest path) from start to end is {route.Cost} points");
+            Console.WriteLine($"Lowest score (of the shortest path) from start to end is {routes.Item1.Cost} points");
+            Console.WriteLine($"Watchpoints count: {watchPoints.Count}"); // 432 too low
         }
 
-        private static Route GetShortestRoute(List<List<char>> map)
+        private HashSet<Point> GetWatchPoints(List<Route> finalRoutes)
+        {
+            var lowCostRoutes = finalRoutes.GroupBy(x => x.Cost).OrderBy(x => x.Key).First();
+
+            var watchPoints = new HashSet<Point>();
+            foreach (var route in lowCostRoutes)
+            {
+                foreach (var point in route.Visited)
+                {
+                    watchPoints.Add(point);
+                }
+            }
+
+            return watchPoints;
+        }
+
+        private static (Route, List<Route>) GetShortestRoutes(List<List<char>> map)
         {
             var startPoint = FindStartPoint(map);
-            var finalRoute = new Route { Head = startPoint, Visited = new HashSet<Point> { startPoint } };
+            var finalRoute = new Route { Id = GetNextRouteId(), Head = startPoint, Visited = new HashSet<Point> { startPoint } };
             var queue = new Queue<Route>();
             queue.Enqueue(finalRoute);
+
+            var finalRoutes = new List<Route>();
 
             while(queue.Any())
             {
@@ -48,7 +69,7 @@ namespace AdventOfCode.Days
                 {
                     if (nextRoute.IsFinal)
                     {
-                        //return nextRoute; // test
+                        finalRoutes.Add(nextRoute);
 
                         if (!finalRoute.IsFinal || nextRoute.Cost < finalRoute.Cost)
                         {
@@ -60,9 +81,10 @@ namespace AdventOfCode.Days
 
                     queue.Enqueue(nextRoute);
                 }
+
             }
 
-            return finalRoute;
+            return (finalRoute, finalRoutes);
         }
 
         private static List<Route> GetNextRoutes(Route route, List<List<char>> map)
@@ -90,19 +112,20 @@ namespace AdventOfCode.Days
                 var nextRouteCost = route.Cost + cost;
                 var nextRoute = new Route
                 {
+                    Id = GetNextRouteId(),
                     Cost = nextRouteCost,
                     Head = nextPoint,
                     Visited = newSet,
                     Direction = nextDirection
                 };
 
-                if (_pointCosts.TryGetValue(nextPoint, out var existingCost) && existingCost < nextRouteCost)
+                if (_pointCostsDirectional.TryGetValue((nextPoint, route.Direction), out var existingCost) && existingCost < nextRouteCost)
                 {
                     continue;
                 }
                 else
                 {
-                    _pointCosts[nextPoint] = nextRouteCost;
+                    _pointCostsDirectional[(nextPoint, route.Direction)] = nextRouteCost;
                 }
 
                 if (map[nextPoint.Row][nextPoint.Col] == 'E') // end reached
@@ -131,25 +154,40 @@ namespace AdventOfCode.Days
             throw new Exception("Start point not found");
         }
 
-        private static void PrintInteractive(Route route, List<List<char>> map)
+        private static void PrintInteractive(Route route, List<List<char>> map, HashSet<Point> watchPoints)
         {
             var height = map.Count;
+            if (height > 50)
+            {
+                return;
+            }
+
             var list = route.Visited.ToList();
 
-            foreach (var point in list)
+            foreach (var point in watchPoints)
             {
                 Console.SetCursorPosition(point.Col, point.Row);
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write($"{map[point.Row][point.Col]}");
+                Console.Write($"O");
                 Console.ResetColor();
                 Thread.Sleep(100);
             }
+
+            //foreach (var point in list)
+            //{
+            //    Console.SetCursorPosition(point.Col, point.Row);
+            //    Console.ForegroundColor = ConsoleColor.Green;
+            //    Console.Write($"{map[point.Row][point.Col]}");
+            //    Console.ResetColor();
+            //    Thread.Sleep(100);
+            //}
 
             Console.SetCursorPosition(0, height + 1);
         }
 
         private class Route
         {
+            public long Id { get; set; }
             public bool IsFinal { get; set; }
             public int Cost { get; set; }
             public Point Head { get; set; }
@@ -179,5 +217,11 @@ namespace AdventOfCode.Days
             new(1, 0),
             new(0, -1)
         };
+
+        private static long GetNextRouteId()
+        {
+            RouteCounter++;
+            return RouteCounter;
+        }
     }
 }
