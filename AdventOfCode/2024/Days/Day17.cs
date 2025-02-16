@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using static AdventOfCode.Extensions;
 
@@ -30,7 +31,40 @@ namespace AdventOfCode.Days
             Console.WriteLine("Input:\n" + File.ReadAllText(InputPath) + "\n");
 
             RunPart1();
-            RunPart2();
+            RunPart2BruteForce();
+
+            Console.WriteLine("Write octal number to parse it, write 'exit' to exit");
+            string line = Console.ReadLine();
+            while (line != "exit")
+            {
+                RunForNumberOctal(line);
+                line = Console.ReadLine();
+            }
+        }
+        
+        private void RunPart2BruteForce()
+        {
+            // var startNumberOctal = "5611134250025052";
+
+            // 4 digits
+            //var leftPart = "561113";
+            //var rightPart = "025052";
+
+            // 6 digits
+            //var leftPart = "56111";
+            //var rightPart = "25052";
+
+            // 8 digits
+            var leftPart = "";
+            var rightPart = "62025052";
+
+            for (int i = 0; i < 16777216; i++) // 16777216 is 8^8 (00000000 to 77777777 in octal)
+            {
+                string middlePart = Convert.ToString(i, 8).PadLeft(8, '0');
+                string fullNumberOctal = leftPart + middlePart + rightPart;
+
+                RunForNumberOctal(fullNumberOctal, false);
+            }
         }
 
         private void RunPart1()
@@ -41,67 +75,93 @@ namespace AdventOfCode.Days
             var length = _program.Count;
             while (_pointer < length)
             {
-                // remove
-                //A = 1;
-
                 var opcode = (int)_program[_pointer];
                 var operand = _program[_pointer + 1];
-                _instructions[opcode](operand);
+                Action<long> instruction = opcode switch
+                {
+                    0 => adv,
+                    1 => bxl,
+                    2 => bst,
+                    3 => jnz,
+                    4 => bxc,
+                    5 => @out,
+                    6 => bdv,
+                    7 => cdv,
+                    _ => throw new InvalidOperationException($"Invalid opcode {opcode}")
+                };
+                instruction(operand);
                 _pointer += 2;
             }
             Console.WriteLine("Part 1 Output: \n" + _output.ToString() + "\n");
             Console.WriteLine("----------------------------------------------" + "\n");
         }
 
-        private void RunPart2()
+        private void RunForNumber(long number, bool print = true)
         {
-            long A_register = 0;
+            _output = new StringBuilder();
+            _skip = false;
+            _pointer = 0;
+            A = number;
+            B = 0;
+            C = 0;
 
-            for (long i = 0; i < 10; i++)
+            var length = _program.Count;
+            while (_pointer < length)
             {
-                _output = new StringBuilder();
-                _skip = false;
-                _pointer = 0;
-                A = i;
-                B = 0;
-                C = 0;
-
-                var length = _program.Count;
-                while (_pointer < length)
+                var opcode = (int)_program[_pointer];
+                var operand = _program[_pointer + 1];
+                Action<long> instruction = opcode switch
                 {
-                    var opcode = (int)_program[_pointer];
-                    var operand = _program[_pointer + 1];
-                    Action<long> instruction = opcode switch
-                    {
-                        0 => adv,
-                        1 => bxl,
-                        2 => bst,
-                        3 => jnz,
-                        4 => bxc,
-                        5 => @out_part2,
-                        6 => bdv,
-                        7 => cdv,
-                        _ => throw new InvalidOperationException($"Invalid opcode {opcode}")
-                    };
-                    instruction(operand);
-                    if (_skip)
-                    {
-                        break;
-                    }
-
-                    _pointer += 2;
-                }
-
-                if (!_skip && _output.ToString() == _initialProgramString)
+                    0 => adv,
+                    1 => bxl,
+                    2 => bst,
+                    3 => jnz,
+                    4 => bxc,
+                    5 => @out,
+                    6 => bdv,
+                    7 => cdv,
+                    _ => throw new InvalidOperationException($"Invalid opcode {opcode}")
+                };
+                instruction(operand);
+                if (_skip)
                 {
-                    A_register = i;
                     break;
                 }
-            }
 
-            Console.WriteLine("Part 2 Output: \n" + _output.ToString());
-            Console.WriteLine($"\nA register: {A_register}\n");
-            Console.WriteLine("----------------------------------------------" + "\n");
+                _pointer += 2;
+            }
+            
+            var binary = Convert.ToString(number, 2);
+            var octal = ConvertToOctal(number);
+
+            if (print || _initialProgramString == _output.ToString())
+            {
+                Console.WriteLine($"{number} --->>> (oct){octal} --->>> {_output}");
+
+                if (_initialProgramString == _output.ToString())
+                {
+                    Console.WriteLine("^^^^^^^^ ANSWER FOUND ^^^^^^");
+                }
+            }
+        }
+
+        static string ConvertToOctal(long number)
+        {
+            if (number == 0) return "0";
+            number = Math.Abs(number); 
+            string octal = "";
+            while (number > 0)
+            {
+                octal = (number % 8) + octal;
+                number /= 8;
+            }
+            return number < 0 ? "-" + octal : octal; 
+        }
+
+        private void RunForNumberOctal(string octalNumber, bool print = true)
+        {
+            var longNumber = Convert.ToInt64(octalNumber, 8);
+            RunForNumber(longNumber, print);
         }
 
         private void adv(long operand)
@@ -146,32 +206,6 @@ namespace AdventOfCode.Days
             {
                 _output.Append(",");
                 _output.Append(result);
-            }
-        }
-
-        private void @out_part2(long operand)
-        {
-            var combo = OperandVal(operand);
-            var result = combo % 8;
-
-            if (_output.Length == 0)
-            {
-                if (!_initialProgramString.StartsWith(result.ToString()))
-                {
-                    _skip = true;
-                }
-
-                _output.Append(result);
-            }
-            else
-            {
-                _output.Append(",");
-                _output.Append(result);
-
-                if (!_initialProgramString.StartsWith(_output.ToString()))
-                {
-                    _skip = true;
-                }
             }
         }
 
