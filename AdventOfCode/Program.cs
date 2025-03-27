@@ -20,7 +20,7 @@ namespace AdventOfCode
 
             if (RunSpecificDay)
             {
-                var day = new Day15(Year);
+                var day = new Day19(Year);
                 day.Run();
             }
             else
@@ -29,7 +29,7 @@ namespace AdventOfCode
                 var dayType = Assembly.GetExecutingAssembly()
                     .GetTypes()
                     .Where(t => t.IsClass && t.Name.StartsWith("Day") && (t.BaseType?.Name == nameof(DayBase) || t.BaseType?.Name == nameof(DayBaseAsync)))
-                    .OrderByDescending(t => int.Parse(t.Name.Substring(3)))  // Extract number and sort descending
+                    .OrderByDescending(t => double.Parse(t.Name.Substring(3)))  // Extract number and sort descending
                     .FirstOrDefault();  // Get the class with the highest number
 
                 if (dayType != null)
